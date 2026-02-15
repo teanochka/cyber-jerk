@@ -5,7 +5,8 @@ export default defineNuxtConfig({
   modules: [
     'nuxt-auth-utils',
     '@nuxthub/core',
-    '@nuxtjs/tailwindcss'
+    '@nuxtjs/tailwindcss',
+    '@nuxtjs/color-mode',
   ],
   css: ['~/assets/css/main.css'],
   hub: {
