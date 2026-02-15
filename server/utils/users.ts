@@ -1,11 +1,11 @@
 import { eq } from 'drizzle-orm'
-import { useDrizzle, schema } from './useDrizzle'
+import { useDrizzle, tables } from './useDrizzle'
 
 export async function findUserByEmail(email: string) {
     const rows = await useDrizzle()
         .select()
-        .from(schema.users)
-        .where(eq(schema.users.email, email))
+        .from(tables.users)
+        .where(eq(tables.users.email, email))
         .limit(1)
 
     return rows[0] ?? null
@@ -16,5 +16,5 @@ export async function createUser(data: {
     email: string
     password: string
 }) {
-    await useDrizzle().insert(schema.users).values(data)
+    await useDrizzle().insert(tables.users).values(data)
 }

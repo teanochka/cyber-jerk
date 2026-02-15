@@ -1,5 +1,14 @@
 export default eventHandler(async (event) => {
   const { name, email, password } = await readBody(event)
+
+  const existing = await findUserByEmail(email)
+  if (existing) {
+    throw createError({
+      statusCode: 409,
+      data: { field: 'email', message: 'Этот email уже зарегистрирован' },
+    })
+  }
+
   await createUser({
     name,
     email,
@@ -8,12 +17,10 @@ export default eventHandler(async (event) => {
 
   await setUserSession(event, {
     user: {
-      name: name,
-      email: email,
-    }
+      name,
+      email,
+    },
   })
 
-  return {
-    message: 'Successfully registered!',
-  }
+  return { message: 'Successfully registered!' }
 })

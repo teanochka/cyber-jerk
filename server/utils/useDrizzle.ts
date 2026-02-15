@@ -1,13 +1,13 @@
 import { drizzle } from 'drizzle-orm/mysql2'
-import * as schema from '../db/schema'
+import * as tables from '../db/schema'
 
-export { schema }
-
-let _db: ReturnType<typeof drizzle<typeof schema>> | null = null
+let _db: ReturnType<typeof drizzle<typeof tables>> | null = null
 
 export function useDrizzle() {
     if (!_db) {
-        _db = drizzle(process.env.DATABASE_URL!, { schema, mode: 'default' })
+        _db = drizzle(process.env.DATABASE_URL!, { schema: tables, mode: 'default' })
     }
     return _db
 }
+
+export { tables }
