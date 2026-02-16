@@ -1,75 +1,26 @@
-# Nuxt Minimal Starter
-
-Look at the [Nuxt documentation](https://nuxt.com/docs/getting-started/introduction) to learn more.
-
-## Setup
-
-Make sure to install dependencies:
+# Если вдруг нужно скопировать ввид БД
 
 ```bash
-# npm
+# npm - качаем
 npm install
 
-# pnpm
-pnpm install
+# Генерируем миграцию
+npx nuxt db generate
 
-# yarn
-yarn install
+# Вписываем данные о БД в `.env`
+DATABASE_URL="НашаБД"
 
-# bun
-bun install
-```
+# Мигрируем
+npx nuxt db migrate
 
-## Development Server
-
-Start the development server on `http://localhost:3000`:
-
-```bash
-# npm
+# Или сразу запускаем сервачок (локально)
 npm run dev
 
-# pnpm
-pnpm dev
 
-# yarn
-yarn dev
-
-# bun
-bun run dev
 ```
 
-## Production
+Запускаем `http://localhost:3000` - проверяем адресс с терминала, если пишет 3001, то заменяем 3000 на 3001, и так далее. 
+Регестрируемся или заходим через `http://localhost:3000/register` и `http://localhost:3000/login` соотвественно.
+Переходим в `http://localhost:3000/chat` и задаем идею.
 
-Build the application for production:
-
-```bash
-# npm
-npm run build
-
-# pnpm
-pnpm build
-
-# yarn
-yarn build
-
-# bun
-bun run build
-```
-
-Locally preview production build:
-
-```bash
-# npm
-npm run preview
-
-# pnpm
-pnpm preview
-
-# yarn
-yarn preview
-
-# bun
-bun run preview
-```
-
-Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
+На тестовом варианте доступно 2 бота, которые говорят  между собой. Увы, но ресурсы ограничены, и скорость бота будет примерно 15 сообщений в минуту. Кроме этого будет спец кнопка для продолжения диалога.
