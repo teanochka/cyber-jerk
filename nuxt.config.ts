@@ -10,6 +10,13 @@ export default defineNuxtConfig({
   ],
   css: ['~/assets/css/main.css'],
   hub: {
-    db: 'mysql'
+    db: 'sqlite'
+  },
+  runtimeConfig: {
+    gemini: {
+      apiKey: process.env.GEMINI_API_KEY || '',
+      model: process.env.GEMINI_MODEL || 'gemini-2.0-flash',
+    },
+    public: {}
   }
 })
