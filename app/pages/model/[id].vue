@@ -73,7 +73,10 @@ const centerX = containerSize / 2
 const centerY = containerSize / 2
 const radius = 140
 
+const mounted = ref(false)
+
 const botPositions = computed(() => {
+    if (!mounted.value) return []
     const angleStep = (2 * Math.PI) / otherBots.value.length
     return otherBots.value.map((b, index) => {
         const angle = index * angleStep - Math.PI / 2 // Start from top
@@ -86,6 +89,7 @@ const botPositions = computed(() => {
 })
 
 const connectionLines = computed(() => {
+    if (!mounted.value) return []
     return botPositions.value.map(target => {
         const rel = relationships.value.find(r => r.targetId === target.id)
         if (!rel) return null
@@ -100,6 +104,9 @@ const connectionLines = computed(() => {
     }).filter(l => l !== null)
 })
 
+onMounted(() => {
+    mounted.value = true
+})
 </script>
 
 <template>
@@ -167,6 +174,7 @@ const connectionLines = computed(() => {
       <div class="bg-white dark:bg-gray-800 rounded-xl p-8 shadow-md border border-gray-200 dark:border-gray-700 text-center">
           <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-8">Bot Network Relationships</h2>
           
+          <ClientOnly>
           <div class="relative mx-auto mt-10" :style="{ width: containerSize + 'px', height: containerSize + 'px' }">
                <!-- SVG Lines Layer -->
                <svg class="absolute top-0 left-0 w-full h-full pointer-events-none z-0">
@@ -177,25 +185,15 @@ const connectionLines = computed(() => {
                             :x2="line.x2" :y2="line.y2" 
                             :stroke="line.color" 
                             stroke-width="2" 
-                            stroke-dasharray="5,5"
                             class="animate-pulse-slow"
-                        />
-                        <!-- Label Background -->
-                        <rect 
-                            :x="(line.x1 + line.x2)/2 - 40" 
-                            :y="(line.y1 + line.y2)/2 - 12" 
-                            width="80" height="24" 
-                            rx="12" 
-                            class="fill-white dark:fill-gray-800 stroke-gray-200 dark:stroke-gray-700" 
-                            stroke-width="1"
                         />
                         <!-- Label Text -->
                         <text 
                             :x="(line.x1 + line.x2)/2" 
                             :y="(line.y1 + line.y2)/2" 
-                            dy="5"
+                            dy="-5"
                             text-anchor="middle" 
-                            class="text-[10px] font-bold uppercase tracking-wide fill-gray-500 dark:fill-gray-400"
+                            class="text-[10px] font-bold uppercase tracking-wide fill-gray-500 dark:fill-gray-400 drop-shadow-md bg-white/80 dark:bg-gray-800/80 px-1 rounded"
                         >
                             {{ line.label }}
                         </text>
@@ -207,8 +205,8 @@ const connectionLines = computed(() => {
                     class="absolute transform -translate-x-1/2 -translate-y-1/2 z-10 flex flex-col items-center"
                     :style="{ left: centerX + 'px', top: centerY + 'px' }"
                 >
-                   <img :src="bot.avatar" class="w-20 h-20 rounded-full border-4 border-primary shadow-lg bg-white dark:bg-gray-800 p-1">
-                   <span class="mt-2 text-sm font-bold bg-white dark:bg-gray-800 px-2 py-0.5 rounded shadow text-gray-900 dark:text-white border border-gray-100 dark:border-gray-700">You</span>
+                   <img :src="bot.avatar" :alt="bot.name" class="w-20 h-20 rounded-full border-4 border-primary shadow-lg bg-white dark:bg-gray-800 p-1 object-cover">
+                   <span class="mt-2 text-sm font-bold bg-white dark:bg-gray-800 px-2 py-0.5 rounded shadow text-gray-900 dark:text-white border border-gray-100 dark:border-gray-700 whitespace-nowrap">{{ bot.name }}</span>
                </div>
 
                <!-- Other Bots -->
@@ -227,6 +225,7 @@ const connectionLines = computed(() => {
                    </span>
                </div>
           </div>
+          </ClientOnly>
       </div>
 
     </div>
