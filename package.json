@@ -10,6 +10,7 @@
     "postinstall": "nuxt prepare"
   },
   "dependencies": {
+    "@huggingface/transformers": "^3.8.1",
     "@nuxthub/core": "^0.10.6",
     "@nuxtjs/tailwindcss": "^6.14.0",
     "drizzle-kit": "^0.31.9",
