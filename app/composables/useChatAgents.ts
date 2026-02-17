@@ -1,6 +1,7 @@
 import { ref } from 'vue'
 import {
   AGENT_CONFIGS,
+  type AgentConfig,
   type Mood,
   type RelationshipStatus,
 } from '~/config/agents'
@@ -15,10 +16,12 @@ import {
 } from '~/utils/agentHeuristics'
 
 const CONTEXT_WINDOW = 20
+const CUSTOM_AGENTS_KEY = 'cyber-jerk-custom-agents'
 
 // ---- Singleton state ----
 const messages = ref<ChatMessage[]>([])
 const agents = ref<AgentState[]>([])
+const allAgentConfigs = ref<AgentConfig[]>([...AGENT_CONFIGS])
 const modelReady = ref(false)
 const modelLoading = ref(false)
 const modelProgress = ref(0)
@@ -175,13 +178,40 @@ function addMessage(
   })
 }
 
+// ---- Custom agent localStorage ----
+function loadCustomAgentsFromStorage(): AgentConfig[] {
+  if (typeof localStorage === 'undefined') return []
+  try {
+    const raw = localStorage.getItem(CUSTOM_AGENTS_KEY)
+    if (!raw) return []
+    return JSON.parse(raw) as AgentConfig[]
+  } catch {
+    return []
+  }
+}
+
+function saveCustomAgentsToStorage(customs: AgentConfig[]) {
+  if (typeof localStorage === 'undefined') return
+  localStorage.setItem(CUSTOM_AGENTS_KEY, JSON.stringify(customs))
+}
+
+function getCustomConfigs(): AgentConfig[] {
+  return allAgentConfigs.value.filter(
+    (c) => !AGENT_CONFIGS.some((d) => d.id === c.id),
+  )
+}
+
 // ---- Persistence ----
 let historyLoaded = false
 let saveTimeout: ReturnType<typeof setTimeout> | null = null
 
 function initAgentDefaults() {
-  agents.value = AGENT_CONFIGS.map((cfg) => {
-    const otherAgents = AGENT_CONFIGS.filter((c) => c.id !== cfg.id)
+  // Merge built-in + custom configs.
+  const customs = loadCustomAgentsFromStorage()
+  allAgentConfigs.value = [...AGENT_CONFIGS, ...customs]
+
+  agents.value = allAgentConfigs.value.map((cfg) => {
+    const otherAgents = allAgentConfigs.value.filter((c) => c.id !== cfg.id)
     return {
       id: cfg.id,
       name: cfg.name,
@@ -278,7 +308,15 @@ export function useChatAgents() {
     modelLoading.value = true
     modelProgress.value = 0
     ensureWorker()
-    worker!.postMessage({ type: 'init' })
+
+    const config = useRuntimeConfig().public
+    worker!.postMessage({
+      type: 'init',
+      config: {
+        MODEL_ID: config.MODEL_ID,
+        max_tokens: config.max_tokens,
+      },
+    })
   }
 
   function sendUserMessage(text: string) {
@@ -295,7 +333,7 @@ export function useChatAgents() {
       currentAgentIndex.value = i
       const agent = agents.value[i]
       if (!agent) continue
-      const config = AGENT_CONFIGS.find((c) => c.id === agent.id)
+      const config = allAgentConfigs.value.find((c) => c.id === agent.id)
       if (!config) continue
 
       const prevMood = agent.mood
@@ -345,9 +383,74 @@ export function useChatAgents() {
     saveHistory()
   }
 
+  function createCustomAgent(input: {
+    name: string
+    color: string
+    avatarSeed: string
+    systemPrompt: string
+  }) {
+    const id = `custom-${Date.now()}`
+    const newConfig: AgentConfig = {
+      id,
+      name: input.name,
+      color: input.color,
+      avatarSeed: input.avatarSeed,
+      systemPrompt: input.systemPrompt,
+    }
+
+    allAgentConfigs.value.push(newConfig)
+    saveCustomAgentsToStorage(getCustomConfigs())
+
+    // Build relationships for the new agent toward all existing agents.
+    const newAgentState: AgentState = {
+      id,
+      name: input.name,
+      color: input.color,
+      avatarUrl: avatarUrl(input.avatarSeed),
+      mood: 'neutral' as Mood,
+      relationships: agents.value.map((a) => ({
+        targetId: a.id,
+        targetName: a.name,
+        status: 'neutral' as RelationshipStatus,
+      })),
+      lastReflection: '',
+    }
+
+    // Add a relationship from every existing agent toward the new one.
+    for (const existing of agents.value) {
+      existing.relationships.push({
+        targetId: id,
+        targetName: input.name,
+        status: 'neutral' as RelationshipStatus,
+      })
+    }
+
+    agents.value.push(newAgentState)
+    debouncedSave()
+  }
+
+  function removeCustomAgent(agentId: string) {
+    // Only allow removing custom agents, not built-in ones.
+    if (AGENT_CONFIGS.some((c) => c.id === agentId)) return
+
+    allAgentConfigs.value = allAgentConfigs.value.filter((c) => c.id !== agentId)
+    saveCustomAgentsToStorage(getCustomConfigs())
+
+    agents.value = agents.value.filter((a) => a.id !== agentId)
+
+    // Remove relationships pointing to the deleted agent.
+    for (const agent of agents.value) {
+      agent.relationships = agent.relationships.filter(
+        (r) => r.targetId !== agentId,
+      )
+    }
+    debouncedSave()
+  }
+
   return {
     messages,
     agents,
+    allAgentConfigs,
     modelReady,
     modelLoading,
     modelProgress,
@@ -356,6 +459,8 @@ export function useChatAgents() {
     initModel,
     sendUserMessage,
     runCycle,
+    createCustomAgent,
+    removeCustomAgent,
   }
 }
 

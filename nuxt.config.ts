@@ -11,5 +11,11 @@ export default defineNuxtConfig({
   css: ['~/assets/css/main.css'],
   hub: {
     db: 'mysql'
+  },
+  runtimeConfig: {
+    public: {
+      MODEL_ID: 'onnx-community/Qwen2.5-0.5B-Instruct',
+      max_tokens: 200,
+    }
   }
 })

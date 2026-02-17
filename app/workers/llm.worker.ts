@@ -1,18 +1,26 @@
 import { pipeline, TextGenerationPipeline } from '@huggingface/transformers'
 
-const MODEL_ID = 'onnx-community/Qwen2.5-0.5B-Instruct'
-
 let generator: TextGenerationPipeline | null = null
+let defaultMaxTokens = 200 // Default fallback
 
 self.addEventListener('message', async (event: MessageEvent) => {
-    const { type, id, prompt } = event.data
+    const { type, id, prompt, config } = event.data
 
     if (type === 'init') {
         try {
             self.postMessage({ type: 'init-progress', progress: 0 })
 
+            const modelId = config?.MODEL_ID
+            if (config?.max_tokens) {
+                defaultMaxTokens = config.max_tokens
+            }
+
+            if (!modelId) {
+                throw new Error('MODEL_ID not provided in init config')
+            }
+
             // @ts-ignore -- pipeline() overloads produce a union too complex for TS
-            generator = await pipeline('text-generation', MODEL_ID, {
+            generator = await pipeline('text-generation', modelId, {
                 dtype: 'q4',
                 device: 'webgpu',
                 progress_callback: (progress: any) => {
@@ -41,7 +49,7 @@ self.addEventListener('message', async (event: MessageEvent) => {
         try {
             const { messages: chatMessages, maxTokens } = JSON.parse(prompt!)
             const output = await generator(chatMessages, {
-                max_new_tokens: maxTokens ?? 100,
+                max_new_tokens: maxTokens ?? defaultMaxTokens,
                 temperature: 0.7,
                 top_p: 0.9,
                 do_sample: true,
