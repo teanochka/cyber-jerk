@@ -156,7 +156,6 @@ function cleanReply(raw: string, agentName: string): string {
   if (sentences && sentences.length > 2) {
     text = sentences.slice(0, 2).join('').trim()
   }
-
   return text
 }
 
@@ -176,25 +175,102 @@ function addMessage(
   })
 }
 
+// ---- Persistence ----
+let historyLoaded = false
+let saveTimeout: ReturnType<typeof setTimeout> | null = null
+
+function initAgentDefaults() {
+  agents.value = AGENT_CONFIGS.map((cfg) => {
+    const otherAgents = AGENT_CONFIGS.filter((c) => c.id !== cfg.id)
+    return {
+      id: cfg.id,
+      name: cfg.name,
+      color: cfg.color,
+      avatarUrl: avatarUrl(cfg.avatarSeed),
+      mood: 'neutral' as Mood,
+      relationships: otherAgents.map((o) => ({
+        targetId: o.id,
+        targetName: o.name,
+        status: 'neutral' as RelationshipStatus,
+      })),
+      lastReflection: '',
+    }
+  })
+}
+
+async function loadHistory() {
+  if (historyLoaded) return
+  historyLoaded = true
+
+  try {
+    const data = await $fetch<any>('/api/chat/history')
+
+    if (data.messages && data.messages.length > 0) {
+      messages.value = data.messages
+    }
+
+    // Initialize agents to defaults first, then apply saved state.
+    if (agents.value.length === 0) {
+      initAgentDefaults()
+    }
+
+    if (data.agentStates && data.agentStates.length > 0) {
+      for (const saved of data.agentStates) {
+        const agent = agents.value.find((a) => a.id === saved.agentId)
+        if (agent) {
+          agent.mood = saved.mood as Mood
+          agent.lastReflection = saved.lastReflection ?? ''
+          if (Array.isArray(saved.relationships)) {
+            agent.relationships = saved.relationships
+          }
+        }
+      }
+    }
+  } catch (err: any) {
+    // If 401, the user is not logged in; just use defaults silently.
+    if (err?.statusCode !== 401) {
+      console.error('[Chat] Failed to load history:', err)
+    }
+  }
+}
+
+function debouncedSave() {
+  if (saveTimeout) clearTimeout(saveTimeout)
+  saveTimeout = setTimeout(() => {
+    saveHistory()
+  }, 2000)
+}
+
+async function saveHistory() {
+  try {
+    await $fetch('/api/chat/history', {
+      method: 'POST',
+      body: {
+        messages: messages.value,
+        agentStates: agents.value.map((a) => ({
+          agentId: a.id,
+          mood: a.mood,
+          lastReflection: a.lastReflection,
+          relationships: a.relationships,
+        })),
+      },
+    })
+  } catch (err: any) {
+    if (err?.statusCode !== 401) {
+      console.error('[Chat] Failed to save history:', err)
+    }
+  }
+}
+
 // ---- Public composable ----
 export function useChatAgents() {
   if (agents.value.length === 0) {
-    agents.value = AGENT_CONFIGS.map((cfg) => {
-      const otherAgents = AGENT_CONFIGS.filter((c) => c.id !== cfg.id)
-      return {
-        id: cfg.id,
-        name: cfg.name,
-        color: cfg.color,
-        avatarUrl: avatarUrl(cfg.avatarSeed),
-        mood: 'neutral' as Mood,
-        relationships: otherAgents.map((o) => ({
-          targetId: o.id,
-          targetName: o.name,
-          status: 'neutral' as RelationshipStatus,
-        })),
-        lastReflection: '',
-      }
-    })
+    initAgentDefaults()
+  }
+
+  // Load history from DB on first use (client-side only).
+  if (import.meta.client && !historyLoaded) {
+    loadHistory()
   }
 
   async function initModel() {
@@ -208,9 +284,9 @@ export function useChatAgents() {
   function sendUserMessage(text: string) {
     if (!text.trim()) return
     addMessage('user', 'You', text.trim(), 'bg-primary/10')
+    debouncedSave()
   }
 
-  // Run one full cycle: for each agent, update mood/relationships, then generate reply.
   async function runCycle() {
     if (!modelReady.value || cycleRunning.value) return
     cycleRunning.value = true
@@ -222,7 +298,6 @@ export function useChatAgents() {
       const config = AGENT_CONFIGS.find((c) => c.id === agent.id)
       if (!config) continue
 
-      // Step 1: Heuristic reflection (instant, no LLM needed).
       const prevMood = agent.mood
       agent.mood = determineMood(agent.id, agent.mood, messages.value)
       agent.relationships = updateRelationships(agent, messages.value)
@@ -234,7 +309,6 @@ export function useChatAgents() {
       )
       console.log(`[${agent.name}] mood: ${prevMood} -> ${agent.mood} | thought: ${agent.lastReflection}`)
 
-      // Step 2: Generate reply via LLM.
       try {
         const replyMessages = buildReplyPrompt(agent, config.systemPrompt)
         const replyRaw = await workerGenerate(replyMessages, 100)
@@ -243,7 +317,6 @@ export function useChatAgents() {
         if (cleaned) {
           addMessage(agent.id, agent.name, cleaned, agent.color)
         } else {
-          // Fallback: if the model produced garbage, generate a mood-appropriate filler.
           const fillers: Record<string, string[]> = {
             happy: ['Ha, this is fun!', 'I like where this is going.'],
             angry: ['Hmph.', 'I do not appreciate that.'],
@@ -262,12 +335,14 @@ export function useChatAgents() {
         console.error(`[Reply ${agent.name}]`, err)
       }
 
-      // Small delay between agents for visual turn-taking.
       await new Promise((res) => setTimeout(res, 300))
     }
 
     currentAgentIndex.value = -1
     cycleRunning.value = false
+
+    // Save state after the full cycle completes.
+    saveHistory()
   }
 
   return {
@@ -283,3 +358,4 @@ export function useChatAgents() {
     runCycle,
   }
 }
+

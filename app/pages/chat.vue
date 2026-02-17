@@ -181,7 +181,7 @@ const activeAgentName = computed(() => {
             >
               <img
                 v-if="msg.sender !== 'user'"
-                :src="agents.find(a => a.id === msg.sender)?.avatarUrl ?? '/svg/profile.svg'"
+                :src="agents.find((a: any) => a.id === msg.sender)?.avatarUrl ?? '/svg/profile.svg'"
                 :alt="msg.senderName"
                 class="w-8 h-8 rounded-full flex-shrink-0 bg-gray-100 dark:bg-gray-600"
               />

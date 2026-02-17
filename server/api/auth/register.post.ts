@@ -9,7 +9,7 @@ export default eventHandler(async (event) => {
     })
   }
 
-  await createUser({
+  const userId = await createUser({
     name,
     email,
     password: await hashPassword(password),
@@ -17,6 +17,7 @@ export default eventHandler(async (event) => {
 
   await setUserSession(event, {
     user: {
+      id: userId,
       name,
       email,
     },

@@ -16,5 +16,8 @@ export async function createUser(data: {
     email: string
     password: string
 }) {
-    await useDrizzle().insert(tables.users).values(data)
+    const result = await useDrizzle().insert(tables.users).values(data)
+    // MySQL insert returns insertId in the first element.
+    const insertId = (result as any)[0]?.insertId
+    return insertId as number
 }
