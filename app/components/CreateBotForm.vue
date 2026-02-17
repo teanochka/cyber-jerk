@@ -43,7 +43,7 @@ function handleSubmit() {
 
 <template>
   <div class="rounded-xl border-2 border-dashed border-primary/30 bg-primary/5 dark:bg-primary/10 p-4 space-y-3">
-    <h3 class="text-sm font-bold text-gray-900 dark:text-white">Create New Bot</h3>
+    <h3 class="text-sm font-bold text-gray-900 dark:text-white">Создать нового бота</h3>
 
     <!-- Avatar Preview + Seed -->
     <div class="flex items-center gap-3">

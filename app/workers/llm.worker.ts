@@ -21,7 +21,7 @@ self.addEventListener('message', async (event: MessageEvent) => {
 
             // @ts-ignore -- pipeline() overloads produce a union too complex for TS
             generator = await pipeline('text-generation', modelId, {
-                dtype: 'q4',
+                dtype: 'auto',
                 device: 'webgpu',
                 progress_callback: (progress: any) => {
                     if (progress.status === 'progress') {
@@ -35,7 +35,7 @@ self.addEventListener('message', async (event: MessageEvent) => {
 
             self.postMessage({ type: 'init-done' })
         } catch (err: any) {
-            self.postMessage({ type: 'error', error: err?.message ?? String(err) })
+            self.postMessage({ type: 'error', error: `Model init failed: ${err?.message ?? err?.name ?? JSON.stringify(err) ?? String(err)}` })
         }
         return
     }
@@ -50,9 +50,11 @@ self.addEventListener('message', async (event: MessageEvent) => {
             const { messages: chatMessages, maxTokens } = JSON.parse(prompt!)
             const output = await generator(chatMessages, {
                 max_new_tokens: maxTokens ?? defaultMaxTokens,
-                temperature: 0.7,
+                temperature: 0.95,
                 top_p: 0.9,
+                top_k: 50,
                 do_sample: true,
+                repetition_penalty: 1.1,
             })
 
             // The pipeline returns an array of objects with `generated_text`.

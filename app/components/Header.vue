@@ -24,10 +24,8 @@ async function logout() {
       <div class="flex flex-1 items-center justify-end md:justify-between">
         <nav aria-label="Global" class="hidden md:block">
           <ul class="flex items-center gap-6 text-sm">
-            <li><a class="text-gray-500 transition hover:text-gray-500/75 dark:text-white dark:hover:text-white/75" href="#">About</a></li>
-            <li><a class="text-gray-500 transition hover:text-gray-500/75 dark:text-white dark:hover:text-white/75" href="#">Careers</a></li>
-            <li><a class="text-gray-500 transition hover:text-gray-500/75 dark:text-white dark:hover:text-white/75" href="#">Services</a></li>
-            <li><a class="text-gray-500 transition hover:text-gray-500/75 dark:text-white dark:hover:text-white/75" href="#">Projects</a></li>
+            <li><a class="text-gray-500 transition hover:text-gray-500/75 dark:text-white dark:hover:text-white/75" href="#">О нас</a></li>
+            <li><a class="text-gray-500 transition hover:text-gray-500/75 dark:text-white dark:hover:text-white/75" href="https://github.com/teanochka?tab=repositories">Проекты</a></li>
           </ul>
         </nav>
 

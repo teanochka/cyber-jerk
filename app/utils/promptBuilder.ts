@@ -3,8 +3,10 @@
 
 import type { AgentState } from '~/types/chat'
 import type { ChatMessage } from '~/types/chat'
+import { buildToolPrompt } from '~/config/tools'
+import { MOODS, RELATIONSHIP_STATUSES } from '~/config/agents'
 
-const CONTEXT_WINDOW = 20
+const CONTEXT_WINDOW = 6
 
 // Build conversation as proper chat turns for the model.
 export function buildConversationTurns(
@@ -47,14 +49,24 @@ export function buildReplyPrompt(
     }
 
     const moodText = moodInstructions[agentState.mood] ?? 'You feel neutral.'
+    const toolPrompt = buildToolPrompt()
+
+    const otherBotNames = agentState.relationships
+        .map((r) => r.targetName)
+        .join(', ')
 
     const systemMessage = {
         role: 'system',
         content:
-            `${systemPrompt}\n` +
-            `${moodText}\n` +
-            `Your relationships: ${relSummary || 'no strong feelings yet'}.\n` +
-            'RULES: Reply with 1-2 short sentences. Stay in character. Do NOT repeat what others said. Be original.',
+            `Your name is ${agentState.name}. You are ${systemPrompt}. Your current mood is: ${agentState.mood}. Your relationships: ${relSummary || 'no strong feelings yet'}.
+            INSTRUCTIONS:
+            - You MUST start every reply with a valid JSON action block to verify your current mood and update relationships.
+            - Format: { "action": "update_state", "mood": "happy", "relationships": { "Jarvis": "neutral", "Glitch": "friendly" } }
+            - "mood" must be one of: ${MOODS.join(', ')}.
+            - "relationships" is a map of BotName -> Status. statuses: ${RELATIONSHIP_STATUSES.join(', ')}.
+            - After the JSON, write your text response.
+            - Keep text response SHORT (under 2 sentences).
+            `,
     }
 
     const turns = buildConversationTurns(messages, agentState.id)
@@ -62,8 +74,20 @@ export function buildReplyPrompt(
 }
 
 // Clean up the raw reply from the model.
+// Now also strips out JSON tool call blocks, leaving only the spoken text.
 export function cleanReply(raw: string, agentName: string): string {
+    // First strip any tool call JSON from the text.
     let text = raw.trim()
+
+    // Remove fenced JSON blocks.
+    text = text.replace(/```json\s*[\s\S]*?```/g, '')
+    // Remove unfenced JSON objects.
+    text = text.replace(/\{[\s\S]*?("action"|action)\s*:[\s\S]*?\}/g, '')
+
+    // Remove markdown bold/italic/headers
+    text = text.replace(/[*#_]+/g, '')
+
+    text = text.trim()
 
     // Strip name prefix.
     const prefixPattern = new RegExp(`^${agentName}\\s*:\\s*`, 'i')
@@ -79,17 +103,26 @@ export function cleanReply(raw: string, agentName: string): string {
     // Strip leading/trailing quotes.
     text = text.replace(/^["']|["']$/g, '')
 
-    // If the model output contains "[SomeName]:" at the start, it's echoing context.
+    // Echo detection
     if (/^\[.+\]:/.test(text)) return ''
 
-    // Detect and reject gibberish (repeated character sequences).
-    if (/(.)\\1{10,}/.test(text)) return ''
-    if (/(\w{2,})\1{5,}/.test(text)) return ''
+    // Gibberish detection
+    if (/(.)\\1{10,}/.test(text)) return '' // Repeated chars
+    if (/(\w{2,})\1{5,}/.test(text)) return '' // Repeated words
 
-    // Take only the first 2 sentences to avoid runaway generation.
+    // Length sanity check: if a single "word" is > 30 chars, it's garbage
+    if (text.split(/\s+/).some(w => w.length > 30)) return ''
+
+    // Force truncation after 2 sentences.
+    // This stops the "rambling" behavior where it generates 500 words of nonsense.
     const sentences = text.match(/[^.!?]+[.!?]+/g)
-    if (sentences && sentences.length > 2) {
-        text = sentences.slice(0, 2).join('').trim()
+    if (sentences && sentences.length > 0) {
+        // Take max 2 sentences.
+        text = sentences.slice(0, 2).join(' ').trim()
+    } else {
+        // If no punctuation found, just take the first 150 chars.
+        if (text.length > 150) text = text.slice(0, 150) + '...'
     }
+
     return text
 }

@@ -24,7 +24,7 @@ async function login() {
       body: credentials,
     })
     await refreshSession()
-    await navigateTo('/')
+    await navigateTo('/chat')
   } catch (err: any) {
     const data = err?.data?.data
     if (data?.field && data?.message) {
