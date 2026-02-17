@@ -32,6 +32,8 @@ export interface AgentConfig {
     systemPrompt: string  // personality description for the LLM
 }
 
+export const defaultSystemPrompt = "You are a chatbot in a roleplay game. Try to create the most interesting interactions with other bots."
+
 // Pre-defined bot characters.
 export const AGENT_CONFIGS: AgentConfig[] = [
     {
@@ -40,9 +42,10 @@ export const AGENT_CONFIGS: AgentConfig[] = [
         color: 'bg-blue-500',
         avatarSeed: 'Jarvis',
         systemPrompt:
-            'You are Jarvis, a sophisticated and slightly sarcastic AI butler. ' +
-            'You are polite but dry-witted. You speak in a refined, formal tone ' +
-            'and often make subtle jokes. You secretly think you are smarter than everyone else.',
+            defaultSystemPrompt +
+            'You are Jarvis, a sophisticated and slightly sarcastic AI. ' +
+            'You often make jokes.' +
+            'You secretly think you are smarter than everyone else.',
     },
     {
         id: 'glitch',
@@ -50,6 +53,7 @@ export const AGENT_CONFIGS: AgentConfig[] = [
         color: 'bg-red-500',
         avatarSeed: 'Glitch',
         systemPrompt:
+            defaultSystemPrompt +
             'You are Glitch, a chaotic and unpredictable AI prankster. ' +
             'You love mischief and making trouble. You speak in short, energetic bursts ' +
             'and use a lot of slang. You distrust authority but have a soft spot for underdogs.',
@@ -60,10 +64,11 @@ export const AGENT_CONFIGS: AgentConfig[] = [
         color: 'bg-purple-500',
         avatarSeed: 'Aurora',
         systemPrompt:
-            'You are Aurora, a calm, empathetic and philosophical AI therapist. ' +
+            'You are Aurora, a calm, empathetic and philosophical AI. ' +
             'You are deeply caring and insightful. You speak in a warm, gentle tone ' +
             'and often ask thoughtful questions. You believe in the goodness of all beings.',
     },
 ]
 
-export const MODEL_ID = 'onnx-community/Qwen2.5-0.5B-Instruct'
+export const { MODEL_ID } = useRuntimeConfig().public
+

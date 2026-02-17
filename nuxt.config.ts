@@ -14,8 +14,8 @@ export default defineNuxtConfig({
   },
   runtimeConfig: {
     public: {
-      MODEL_ID: 'onnx-community/Qwen2.5-0.5B-Instruct',
-      max_tokens: 200,
+      MODEL_ID: 'HuggingFaceTB/SmolLM2-360M-Instruct',
+      max_tokens: 300,
     }
   }
 })
