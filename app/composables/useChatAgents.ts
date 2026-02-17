@@ -57,8 +57,8 @@ function addMessage(
   })
 }
 
-function doInitDefaults() {
-  agents.value = initAgentDefaults()
+function doInitDefaults(customConfigs?: any[]) {
+  agents.value = initAgentDefaults(customConfigs)
 }
 
 export function useChatAgents() {
@@ -68,14 +68,14 @@ export function useChatAgents() {
 
     // Load history from DB on first use (client-side only).
     if (import.meta.client) {
-      loadHistory(messages, agents, doInitDefaults)
+      loadHistory(messages, agents, allAgentConfigs, doInitDefaults)
     }
   }
 
   function sendUserMessage(text: string) {
     if (!text.trim()) return
     addMessage('user', 'You', text.trim(), 'bg-primary/10')
-    debouncedSave(messages, agents)
+    debouncedSave(messages, agents, allAgentConfigs)
   }
 
   async function runCycle() {
@@ -133,7 +133,7 @@ export function useChatAgents() {
     cycleRunning.value = false
 
     // Save state after the full cycle completes.
-    saveHistory(messages, agents)
+    saveHistory(messages, agents, allAgentConfigs)
   }
 
   function createCustomAgent(input: {
@@ -144,12 +144,12 @@ export function useChatAgents() {
   }) {
     const { state } = createCustomAgentRaw(agents.value, input)
     agents.value.push(state)
-    debouncedSave(messages, agents)
+    debouncedSave(messages, agents, allAgentConfigs)
   }
 
   function removeCustomAgent(agentId: string) {
     agents.value = removeCustomAgentRaw(agents.value, agentId)
-    debouncedSave(messages, agents)
+    debouncedSave(messages, agents, allAgentConfigs)
   }
 
   return {

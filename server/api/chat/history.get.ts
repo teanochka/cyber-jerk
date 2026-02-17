@@ -21,6 +21,12 @@ export default eventHandler(async (event) => {
         .from(tables.agentStates)
         .where(eq(tables.agentStates.userId, userId))
 
+    // Load custom agent configs for this user.
+    const customs = await useDrizzle()
+        .select()
+        .from(tables.customAgents)
+        .where(eq(tables.customAgents.userId, userId))
+
     return {
         messages: msgs.map((m) => ({
             id: m.id,
@@ -35,6 +41,13 @@ export default eventHandler(async (event) => {
             mood: s.mood,
             lastReflection: s.lastReflection,
             relationships: JSON.parse(s.relationships),
+        })),
+        customAgents: customs.map((c) => ({
+            id: c.agentId,
+            name: c.name,
+            color: c.color,
+            avatarSeed: c.avatarSeed,
+            systemPrompt: c.systemPrompt,
         })),
     }
 })

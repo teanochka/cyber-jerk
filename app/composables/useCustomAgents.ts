@@ -1,4 +1,5 @@
-// Composable for custom agent CRUD and localStorage persistence.
+// Composable for custom agent CRUD.
+// Storage is now handled by useChatHistory (server API).
 
 import { ref } from 'vue'
 import {
@@ -10,46 +11,18 @@ import {
 import type { AgentState } from '~/types/chat'
 import { avatarUrl } from '~/utils/agentStyles'
 
-const CUSTOM_AGENTS_KEY = 'cyber-jerk-custom-agents'
-
 // Singleton reactive refs.
 const allAgentConfigs = ref<AgentConfig[]>([...AGENT_CONFIGS])
-
-function loadCustomAgentsFromStorage(): AgentConfig[] {
-    if (typeof localStorage === 'undefined') return []
-    try {
-        const raw = localStorage.getItem(CUSTOM_AGENTS_KEY)
-        if (!raw) return []
-        return JSON.parse(raw) as AgentConfig[]
-    } catch {
-        return []
-    }
-}
-
-function saveCustomAgentsToStorage(customs: AgentConfig[]) {
-    if (typeof localStorage === 'undefined') return
-    localStorage.setItem(CUSTOM_AGENTS_KEY, JSON.stringify(customs))
-}
-
-function getCustomConfigs(): AgentConfig[] {
-    return allAgentConfigs.value.filter(
-        (c) => !AGENT_CONFIGS.some((d) => d.id === c.id),
-    )
-}
 
 export function isCustomAgent(agentId: string): boolean {
     return !AGENT_CONFIGS.some((c) => c.id === agentId)
 }
 
 export function useCustomAgents() {
-    // Initialize allAgentConfigs with built-in + custom from storage.
-    function loadCustomConfigs() {
-        const customs = loadCustomAgentsFromStorage()
+    // Initialize allAgentConfigs with built-in + optional custom configs.
+    function initAgentDefaults(customConfigs?: AgentConfig[]): AgentState[] {
+        const customs = customConfigs ?? []
         allAgentConfigs.value = [...AGENT_CONFIGS, ...customs]
-    }
-
-    function initAgentDefaults(): AgentState[] {
-        loadCustomConfigs()
 
         return allAgentConfigs.value.map((cfg) => {
             const otherAgents = allAgentConfigs.value.filter((c) => c.id !== cfg.id)
@@ -88,7 +61,6 @@ export function useCustomAgents() {
         }
 
         allAgentConfigs.value.push(newConfig)
-        saveCustomAgentsToStorage(getCustomConfigs())
 
         // Build relationships for the new agent toward all existing agents.
         const newAgentState: AgentState = {
@@ -125,7 +97,6 @@ export function useCustomAgents() {
         if (AGENT_CONFIGS.some((c) => c.id === agentId)) return agents
 
         allAgentConfigs.value = allAgentConfigs.value.filter((c) => c.id !== agentId)
-        saveCustomAgentsToStorage(getCustomConfigs())
 
         const filtered = agents.filter((a) => a.id !== agentId)
 

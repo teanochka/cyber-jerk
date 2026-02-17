@@ -27,3 +27,14 @@ export const agentStates = mysqlTable('agent_states', {
     lastReflection: text('last_reflection').notNull(),
     relationships: text('relationships').notNull(),
 })
+
+export const customAgents = mysqlTable('custom_agents', {
+    id: int('id').primaryKey().autoincrement(),
+    userId: int('user_id').notNull(),
+    agentId: varchar('agent_id', { length: 100 }).notNull(),
+    name: varchar('name', { length: 255 }).notNull(),
+    color: varchar('color', { length: 100 }).notNull(),
+    avatarSeed: varchar('avatar_seed', { length: 255 }).notNull(),
+    systemPrompt: text('system_prompt').notNull(),
+    createdAt: timestamp('created_at').default(sql`CURRENT_TIMESTAMP`),
+})

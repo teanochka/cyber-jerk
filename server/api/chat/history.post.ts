@@ -1,4 +1,4 @@
-import { eq, and } from 'drizzle-orm'
+import { eq } from 'drizzle-orm'
 import { useDrizzle, tables } from '../../utils/useDrizzle'
 
 export default eventHandler(async (event) => {
@@ -9,7 +9,7 @@ export default eventHandler(async (event) => {
     }
 
     const body = await readBody(event)
-    const { messages, agentStates } = body
+    const { messages, agentStates, customAgents } = body
 
     const db = useDrizzle()
 
@@ -40,6 +40,22 @@ export default eventHandler(async (event) => {
                 mood: s.mood,
                 lastReflection: s.lastReflection,
                 relationships: JSON.stringify(s.relationships),
+            })),
+        )
+    }
+
+    // Sync custom agent configs: delete all, then re-insert current list.
+    await db.delete(tables.customAgents).where(eq(tables.customAgents.userId, userId))
+
+    if (customAgents && customAgents.length > 0) {
+        await db.insert(tables.customAgents).values(
+            customAgents.map((c: any) => ({
+                userId,
+                agentId: c.id,
+                name: c.name,
+                color: c.color,
+                avatarSeed: c.avatarSeed,
+                systemPrompt: c.systemPrompt,
             })),
         )
     }

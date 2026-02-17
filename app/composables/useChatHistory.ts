@@ -1,7 +1,8 @@
 // Composable for chat history persistence (server API).
+// Now also syncs custom agent configs to the database.
 
 import type { Ref } from 'vue'
-import type { Mood } from '~/config/agents'
+import type { AgentConfig, Mood } from '~/config/agents'
 import type { ChatMessage, AgentState } from '~/types/chat'
 
 let historyLoaded = false
@@ -11,7 +12,8 @@ export function useChatHistory() {
     async function loadHistory(
         messages: Ref<ChatMessage[]>,
         agents: Ref<AgentState[]>,
-        initDefaults: () => void,
+        allAgentConfigs: Ref<AgentConfig[]>,
+        initDefaults: (customConfigs?: AgentConfig[]) => void,
     ) {
         if (historyLoaded) return
         historyLoaded = true
@@ -19,13 +21,20 @@ export function useChatHistory() {
         try {
             const data = await $fetch<any>('/api/chat/history')
 
+            // Load custom agent configs from the DB before initializing agents.
+            const dbCustomAgents: AgentConfig[] = (data.customAgents ?? []).map((c: any) => ({
+                id: c.id,
+                name: c.name,
+                color: c.color,
+                avatarSeed: c.avatarSeed,
+                systemPrompt: c.systemPrompt,
+            }))
+
+            // Initialize agents with the DB-sourced custom configs.
+            initDefaults(dbCustomAgents)
+
             if (data.messages && data.messages.length > 0) {
                 messages.value = data.messages
-            }
-
-            // Initialize agents to defaults first, then apply saved state.
-            if (agents.value.length === 0) {
-                initDefaults()
             }
 
             if (data.agentStates && data.agentStates.length > 0) {
@@ -51,17 +60,25 @@ export function useChatHistory() {
     function debouncedSave(
         messages: Ref<ChatMessage[]>,
         agents: Ref<AgentState[]>,
+        allAgentConfigs: Ref<AgentConfig[]>,
     ) {
         if (saveTimeout) clearTimeout(saveTimeout)
         saveTimeout = setTimeout(() => {
-            saveHistory(messages, agents)
+            saveHistory(messages, agents, allAgentConfigs)
         }, 2000)
     }
 
     async function saveHistory(
         messages: Ref<ChatMessage[]>,
         agents: Ref<AgentState[]>,
+        allAgentConfigs: Ref<AgentConfig[]>,
     ) {
+        // Extract only custom agents (those not in the built-in list).
+        const { AGENT_CONFIGS } = await import('~/config/agents')
+        const customConfigs = allAgentConfigs.value.filter(
+            (c) => !AGENT_CONFIGS.some((d) => d.id === c.id),
+        )
+
         try {
             await $fetch('/api/chat/history', {
                 method: 'POST',
@@ -72,6 +89,13 @@ export function useChatHistory() {
                         mood: a.mood,
                         lastReflection: a.lastReflection,
                         relationships: a.relationships,
+                    })),
+                    customAgents: customConfigs.map((c) => ({
+                        id: c.id,
+                        name: c.name,
+                        color: c.color,
+                        avatarSeed: c.avatarSeed,
+                        systemPrompt: c.systemPrompt,
                     })),
                 },
             })
