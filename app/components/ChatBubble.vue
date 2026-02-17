@@ -1,50 +1,44 @@
 <script setup lang="ts">
-interface Props {
-  message: string
-  userName: string
-  time: string
-  backgroundColor?: string
-}
+import type { ChatMessage, AgentState } from '~/types/chat'
+import { formatTime } from '~/utils/agentStyles'
 
-withDefaults(defineProps<Props>(), {
-  backgroundColor: 'bg-neutral-secondary-soft'
-})
+defineProps<{
+  msg: ChatMessage
+  avatarUrl: string
+}>()
 </script>
 
-<template>  
-<div class="flex items-start w-fit rounded-lg p-2 gap-2.5" :class="backgroundColor">
-   <img class="w-8 h-8 rounded-full" src="/svg/profile.svg" alt="User image">
-   <div class="flex flex-col gap-1 w-full max-w-[320px]">
-      <div class="flex items-center space-x-1.5 rtl:space-x-reverse">
-         <span class="text-sm font-semibold text-heading">{{ userName }}</span>
-         <span class="text-sm text-body">{{ time }}</span>
+<template>
+  <div :class="{ 'flex justify-end': msg.sender === 'user' }">
+    <div
+      class="flex items-start gap-2.5 max-w-[75%] rounded-xl p-3 shadow-sm border border-gray-100 dark:border-gray-700/50 transition-all"
+      :class="msg.sender === 'user'
+        ? 'bg-primary/10 dark:bg-primary/20 ml-auto'
+        : 'bg-white dark:bg-gray-800'"
+    >
+      <NuxtLink
+        v-if="msg.sender !== 'user'"
+        :to="`/agent/${msg.sender}`"
+        class="flex-shrink-0 hover:scale-110 transition-transform"
+      >
+        <img
+          :src="avatarUrl"
+          :alt="msg.senderName"
+          class="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-600"
+        />
+      </NuxtLink>
+      <div class="flex flex-col gap-1 min-w-0">
+        <div class="flex items-center gap-2">
+          <NuxtLink
+            v-if="msg.sender !== 'user'"
+            :to="`/agent/${msg.sender}`"
+            class="text-sm font-semibold text-gray-900 dark:text-white hover:text-primary dark:hover:text-primary transition-colors"
+          >{{ msg.senderName }}</NuxtLink>
+          <span v-else class="text-sm font-semibold text-gray-900 dark:text-white">{{ msg.senderName }}</span>
+          <span class="text-xs text-gray-400">{{ formatTime(msg.timestamp) }}</span>
+        </div>
+        <p class="text-sm text-gray-700 dark:text-gray-300 leading-relaxed break-words">{{ msg.text }}</p>
       </div>
-      <div class="flex flex-col leading-1.5 p-4 rounded-e-base rounded-es-base">
-         <p class="text-sm text-body">{{ message }}</p>
-      </div>
-      <span class="text-sm text-body">Delivered</span>
-   </div>
-   <button id="dropdownMenuIconButton" data-dropdown-toggle="dropdownDots" data-dropdown-placement="bottom-start" class="inline-flex self-center items-center text-body hover:text-heading bg-neutral-primary box-border border border-transparent hover:bg-neutral-tertiary focus:ring-4 focus:ring-neutral-tertiary rounded-base p-1.5 focus:outline-none" type="button">
-      <svg class="w-6 h-6" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-width="3" d="M12 6h.01M12 12h.01M12 18h.01"/></svg>
-   </button>
-   <div id="dropdownDots" class="z-10 bg-neutral-primary-medium border border-default-medium rounded-base shadow-lg w-40 block hidden">
-      <ul class="p-2 text-sm text-body font-medium" aria-labelledby="dropdownMenuIconButton">
-         <li>
-            <a href="#" class="block w-full p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded-md">Reply</a>
-         </li>
-         <li>
-            <a href="#" class="block w-full p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded-md">Forward</a>
-         </li>
-         <li>
-            <a href="#" class="block w-full p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded-md">Copy</a>
-         </li>
-         <li>
-            <a href="#" class="block w-full p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded-md">Report</a>
-         </li>
-         <li>
-            <a href="#" class="block w-full p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded-md">Delete</a>
-         </li>
-      </ul>
-   </div>
-</div>
+    </div>
+  </div>
 </template>
