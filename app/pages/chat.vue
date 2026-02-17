@@ -12,10 +12,13 @@ const {
   modelLoading,
   modelProgress,
   cycleRunning,
+  isAutoRunning,
+  simulationSpeed,
   currentAgentIndex,
   initModel,
   sendUserMessage,
   runCycle,
+  toggleAutoRun,
   createCustomAgent,
   removeCustomAgent,
 } = useChatAgents()
@@ -31,7 +34,7 @@ function handleSend() {
 }
 
 async function handleAct() {
-  await runCycle()
+  await toggleAutoRun()
 }
 
 // Auto-scroll to bottom when new messages appear.
@@ -111,10 +114,10 @@ function getAvatarUrl(senderId: string): string {
             v-if="modelReady"
             id="act-btn"
             @click="handleAct"
-            :disabled="cycleRunning || messages.length === 0"
-            class="px-5 py-2 text-sm font-bold rounded-lg transition-all shadow-md"
-            :class="cycleRunning
-              ? 'bg-amber-500/50 text-amber-200 cursor-wait animate-pulse'
+            :disabled="messages.length === 0"
+            class="px-5 py-2 text-sm font-bold rounded-lg transition-all shadow-md flex items-center gap-2"
+            :class="isAutoRunning
+              ? 'bg-red-500 text-white hover:bg-red-600 shadow-red-500/30'
               : 'bg-gradient-to-r from-amber-500 to-orange-500 text-white hover:shadow-lg hover:from-amber-600 hover:to-orange-600 disabled:opacity-40 disabled:cursor-not-allowed'"
           >
             <span v-if="cycleRunning" class="flex items-center gap-2">
@@ -122,9 +125,8 @@ function getAvatarUrl(senderId: string): string {
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
               </svg>
-              {{ activeAgentName }} thinking...
             </span>
-            <span v-else>Act</span>
+            <span>{{ isAutoRunning ? 'Stop' : 'Act Loop' }}</span>
           </button>
 
           <!-- Toggle Debug -->
@@ -138,6 +140,19 @@ function getAvatarUrl(senderId: string): string {
             </svg>
           </button>
         </div>
+      </div>
+
+      <!-- Simulation Speed Slider (Only visible when model is ready) -->
+      <div v-if="modelReady" class="px-4 py-2 bg-gray-50/50 dark:bg-gray-900/50 border-b border-gray-100 dark:border-gray-800 flex items-center gap-4 text-xs">
+        <span class="text-gray-500 font-medium">Speed:</span>
+        <input 
+          type="range" 
+          min="0" 
+          max="100" 
+          v-model.number="simulationSpeed" 
+          class="w-32 h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700 accent-primary"
+        />
+        <span class="text-gray-400 w-8 text-right">{{ simulationSpeed }}%</span>
       </div>
 
       <!-- Chat Messages Area -->

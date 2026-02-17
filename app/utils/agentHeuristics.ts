@@ -7,7 +7,7 @@ const POSITIVE_WORDS = [
     'agree', 'yes', 'definitely', 'absolutely', 'wonderful', 'excellent',
     'happy', 'glad', 'fun', 'enjoy', 'cool', 'brilliant', 'kind', 'sweet',
     'beautiful', 'fantastic', 'perfect', 'best', 'friend', 'like', 'appreciate',
-    'welcome', 'cheers', 'laugh', 'smile', 'hug', 'help', 'support',
+    'welcome', 'cheers', 'laugh', 'smile', 'hug', 'help', 'support', 'surprise', 'surprised', 'happy'
 ]
 
 const NEGATIVE_WORDS = [
@@ -15,12 +15,12 @@ const NEGATIVE_WORDS = [
     'ugly', 'annoying', 'angry', 'mad', 'sad', 'worst', 'boring', 'pathetic',
     'shut', 'leave', 'never', 'idiot', 'fool', 'liar', 'fake', 'distrust',
     'betray', 'enemy', 'fight', 'attack', 'insult', 'rude', 'jerk', 'sucks',
-    'horrible', 'disgusting', 'stop', 'kill', 'die', 'damn', 'hell',
+    'horrible', 'disgusting', 'stop', 'kill', 'die', 'damn', 'hell', 'against'
 ]
 
 const CHAOTIC_WORDS = [
     'chaos', 'prank', 'trick', 'mischief', 'trouble', 'wild', 'crazy',
-    'random', 'break', 'smash', 'destroy', 'explode', 'hack', 'glitch',
+    'random', 'break', 'smash', 'destroy', 'explode', 'hack',
 ]
 
 const CALM_WORDS = [
@@ -76,6 +76,13 @@ export function determineMood(
     }
 
     // Build mood probability weights.
+    console.log(`[Heuristics] ${agentId} Mood Scores:`, {
+        positive: totalPositive.toFixed(2),
+        negative: totalNegative.toFixed(2),
+        chaotic: totalChaotic.toFixed(2),
+        calm: totalCalm.toFixed(2)
+    })
+
     const weights: Record<Mood, number> = {
         happy: 1 + totalPositive * 1.5 + totalCalm * 0.5,
         angry: 1 + totalNegative * 2,
@@ -150,15 +157,22 @@ export function updateRelationships(
         }
 
         // Determine relationship shift based on scores.
-        const net = positiveScore - negativeScore
         const currentStatus = rel.status
+        const net = positiveScore - negativeScore
+
+        console.log(`[Heuristics] ${agent.name} <-> ${rel.targetName} Scores:`, {
+            pos: positiveScore.toFixed(2),
+            neg: negativeScore.toFixed(2),
+            net: net.toFixed(2),
+            current: currentStatus
+        })
 
         // Only shift sometimes (not every cycle) for more natural feel.
         if (Math.random() > 0.4) continue
 
         let newStatus: RelationshipStatus = currentStatus
 
-        if (net > 2) {
+        if (net > 1) {
             // Strong positive interaction.
             const positiveOptions: RelationshipStatus[] = ['friendship', 'love']
             if (currentStatus === 'neutral' || currentStatus === 'distrust') {
@@ -168,7 +182,7 @@ export function updateRelationships(
             } else if (currentStatus === 'rivalry') {
                 newStatus = Math.random() > 0.5 ? 'friendship' : 'neutral'
             }
-        } else if (net < -2) {
+        } else if (net < -1) {
             // Strong negative interaction.
             if (currentStatus === 'neutral' || currentStatus === 'friendship') {
                 newStatus = Math.random() > 0.5 ? 'rivalry' : 'distrust'

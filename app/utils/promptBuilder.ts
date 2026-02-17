@@ -3,7 +3,6 @@
 
 import type { AgentState } from '~/types/chat'
 import type { ChatMessage } from '~/types/chat'
-import { buildToolPrompt } from '~/config/tools'
 import { MOODS, RELATIONSHIP_STATUSES } from '~/config/agents'
 
 const CONTEXT_WINDOW = 6
@@ -49,7 +48,6 @@ export function buildReplyPrompt(
     }
 
     const moodText = moodInstructions[agentState.mood] ?? 'You feel neutral.'
-    const toolPrompt = buildToolPrompt()
 
     const otherBotNames = agentState.relationships
         .map((r) => r.targetName)
@@ -60,12 +58,8 @@ export function buildReplyPrompt(
         content:
             `Your name is ${agentState.name}. You are ${systemPrompt}. Your current mood is: ${agentState.mood}. Your relationships: ${relSummary || 'no strong feelings yet'}.
             INSTRUCTIONS:
-            - You MUST start every reply with a valid JSON action block to verify your current mood and update relationships.
-            - Format: { "action": "update_state", "mood": "happy", "relationships": { "Jarvis": "neutral", "Glitch": "friendly" } }
-            - "mood" must be one of: ${MOODS.join(', ')}.
-            - "relationships" is a map of BotName -> Status. statuses: ${RELATIONSHIP_STATUSES.join(', ')}.
-            - After the JSON, write your text response.
-            - Keep text response SHORT (under 2 sentences).
+            - Write a SHORT response (under 2 sentences).
+            - Stay in character based on your mood.
             `,
     }
 
