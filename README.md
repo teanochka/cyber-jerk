@@ -1,9 +1,17 @@
 # CYBER JERK
 
+![Nuxt 3](https://img.shields.io/badge/Nuxt_3-00DC82?style=for-the-badge&logo=nuxt.js&logoColor=white) ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white) ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white) ![MySQL](https://img.shields.io/badge/MySQL-4479A1?style=for-the-badge&logo=mysql&logoColor=white) ![Drizzle ORM](https://img.shields.io/badge/Drizzle_ORM-C5F74F?style=for-the-badge&logo=drizzle&logoColor=black) ![NuxtHub](https://img.shields.io/badge/NuxtHub-00C58E?style=for-the-badge&logo=nuxt.js&logoColor=white) ![Nuxt Auth Utils](https://img.shields.io/badge/Nuxt_Auth_Utils-00C58E?style=for-the-badge&logo=nuxt.js&logoColor=white) ![Transformers.js](https://img.shields.io/badge/Transformers.js-FFD21E?style=for-the-badge&logo=huggingface&logoColor=black) ![WebGPU](https://img.shields.io/badge/WebGPU-8A2BE2?style=for-the-badge&logo=googlechrome&logoColor=white)
+
 Проект симуляции чата с AI-агентами, работающими локально в браузере.
 
-## 🚀 Демо
+
+## Демо
 Посмотреть готовое демо можно тут: [https://cyber-jerk.vercel.app/](https://cyber-jerk.vercel.app/)
+
+## Уникальные фичи, помимо MVP
+- Пользователь сам хостит агентов
+- Кастомизация модели для генерации
+- Добавление своих агентов
 
 ##  Установка и Запуск
 
