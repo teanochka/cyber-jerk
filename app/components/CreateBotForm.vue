@@ -53,13 +53,13 @@ function handleSubmit() {
         class="w-12 h-12 rounded-full bg-gray-100 dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 flex-shrink-0"
       />
       <div class="flex-1 space-y-1">
-        <label class="block text-xs font-medium text-gray-600 dark:text-gray-400">Avatar Seed</label>
+        <label class="block text-xs font-medium text-gray-600 dark:text-gray-400">Seed</label>
         <div class="flex gap-1">
           <input
             id="bot-avatar-seed"
             v-model="seed"
             type="text"
-            placeholder="e.g. CoolBot"
+            placeholder="Например, CoolBot"
             class="flex-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-md px-2 py-1 text-xs text-gray-900 dark:text-white placeholder-gray-400 focus:ring-1 focus:ring-primary/50"
           />
           <button
@@ -78,31 +78,31 @@ function handleSubmit() {
 
     <!-- Name -->
     <div>
-      <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Name *</label>
+      <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Имя *</label>
       <input
         id="bot-name"
         v-model="name"
         type="text"
-        placeholder="e.g. Pixel"
+        placeholder="Например, Pixel"
         class="w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-md px-3 py-1.5 text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:ring-1 focus:ring-primary/50"
       />
     </div>
 
     <!-- System Prompt -->
     <div>
-      <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">System Prompt *</label>
+      <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Системный промпт *</label>
       <textarea
         id="bot-prompt"
         v-model="prompt"
         rows="3"
-        placeholder="Describe personality, tone, quirks..."
+        placeholder="Описание характера, тона, особеностей... (рекомендуется использовать английский)"
         class="w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-md px-3 py-1.5 text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:ring-1 focus:ring-primary/50 resize-none"
       ></textarea>
     </div>
 
     <!-- Color -->
     <div>
-      <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1.5">Color</label>
+      <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1.5">Цвет</label>
       <div class="flex flex-wrap gap-1.5">
         <button
           v-for="c in COLOR_OPTIONS"
@@ -124,7 +124,7 @@ function handleSubmit() {
       :disabled="!name.trim() || !prompt.trim()"
       class="w-full py-2 text-sm font-bold rounded-lg transition-all shadow-sm bg-gradient-to-r from-primary to-cyan-500 text-white hover:shadow-md hover:from-primary-hover hover:to-cyan-600 disabled:opacity-40 disabled:cursor-not-allowed"
     >
-      Create Bot
+      Создать
     </button>
   </div>
 </template>

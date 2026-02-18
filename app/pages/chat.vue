@@ -316,7 +316,7 @@ function getAvatarUrl(senderId: string): string {
             id="chat-input"
             v-model="newMessage"
             type="text"
-            placeholder="Write a message..."
+            placeholder="Напишите сообщение..."
             class="flex-1 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg px-4 py-2.5 text-gray-900 dark:text-white placeholder-gray-500 focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all text-sm"
             :disabled="!modelReady"
           />

@@ -42,11 +42,22 @@ const getLineColor = (status: string) => {
     }
 }
 
+const relationshipLegend = [
+    { label: 'Любовь', color: 'bg-pink-500', hex: '#ec4899' },
+    { label: 'Ненависть', color: 'bg-red-500', hex: '#ef4444' },
+    { label: 'Соперничество', color: 'bg-orange-500', hex: '#f97316' },
+    { label: 'Дружба', color: 'bg-green-500', hex: '#22c55e' },
+    { label: 'Недоверие', color: 'bg-yellow-500', hex: '#eab308' },
+    { label: 'Нейтрально', color: 'bg-gray-400', hex: '#9ca3af' },
+]
+
+
 // Diagram calculations.
-const containerSize = 400
+const containerSize = 600
 const centerX = containerSize / 2
 const centerY = containerSize / 2
-const radius = 140
+const radius = 220
+
 
 const mounted = ref(false)
 
@@ -88,16 +99,18 @@ onMounted(() => {
   <div class="min-h-screen py-12 px-4 sm:px-6 lg:px-8 bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
     <!-- Not Found -->
     <div v-if="!agentConfig || !agentState" class="max-w-4xl mx-auto text-center py-20">
-      <p class="text-2xl font-bold text-gray-400 dark:text-gray-500 mb-4">Agent not found</p>
-      <NuxtLink to="/chat" class="text-primary hover:text-primary-hover transition-colors font-medium">Back to Chat</NuxtLink>
+      <p class="text-2xl font-bold text-gray-400 dark:text-gray-500 mb-4">Агент не найден</p>
+      <NuxtLink to="/chat" class="text-primary hover:text-primary-hover transition-colors font-medium">Назад в чат</NuxtLink>
     </div>
+
 
     <div v-else class="max-w-4xl mx-auto space-y-8">
       <!-- Back Link -->
       <NuxtLink to="/chat" class="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-primary dark:hover:text-primary transition-colors">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
-        Back to Chat
+        Назад в чат
       </NuxtLink>
+
 
       <!-- Profile Header -->
       <div class="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg border border-gray-200 dark:border-gray-700 relative overflow-hidden group">
@@ -110,8 +123,9 @@ onMounted(() => {
                 <div
                     class="absolute bottom-0 right-0 w-8 h-8 rounded-full border-2 border-white dark:border-gray-800 flex items-center justify-center text-xs text-white font-bold"
                     :class="[moodConfig.color, moodConfig.shadow, 'shadow-lg']"
-                    :title="`Current Mood: ${moodConfig.label}`"
+                    :title="`Текущее настроение: ${moodConfig.label}`"
                 >
+
                 <div class="animate-pulse w-full h-full rounded-full opacity-50 absolute"></div>
                 </div>
             </div>
@@ -122,8 +136,9 @@ onMounted(() => {
 
                 <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gray-100 dark:bg-gray-700/50 text-sm font-medium text-gray-700 dark:text-gray-300">
                     <span class="w-2 h-2 rounded-full" :class="moodConfig.color"></span>
-                    Current Mood: {{ moodConfig.label }}
+                    Текущее настроение: {{ moodConfig.label }}
                 </div>
+
             </div>
         </div>
       </div>
@@ -134,8 +149,9 @@ onMounted(() => {
           <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-md border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-shadow">
               <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                   <svg class="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-                  Personality Matrix
+                  Матрица личности
               </h2>
+
               <p class="text-gray-600 dark:text-gray-300 leading-relaxed font-mono text-sm">
                   {{ agentConfig.systemPrompt }}
               </p>
@@ -145,20 +161,30 @@ onMounted(() => {
           <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-md border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-shadow">
               <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                   <svg class="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path></svg>
-                  Current Thoughts
+                  Текущие мысли
               </h2>
+
               <div v-if="agentState.lastReflection" class="p-4 bg-yellow-50 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-200 rounded-lg border border-yellow-100 dark:border-yellow-800/30">
                   <p class="italic font-medium">"{{ agentState.lastReflection }}"</p>
               </div>
-              <p v-else class="text-gray-400 dark:text-gray-500 italic text-sm">No thoughts yet. Start a conversation first.</p>
+              <p v-else class="text-gray-400 dark:text-gray-500 italic text-sm">Нет мыслей (боты еще не думали, начните диалог)</p>
           </div>
+
       </div>
 
       <!-- Relationship Diagram -->
-      <div class="bg-white dark:bg-gray-800 rounded-xl p-8 shadow-md border border-gray-200 dark:border-gray-700 text-center">
-          <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-8">Bot Network Relationships</h2>
+      <div class="bg-white dark:bg-gray-800 rounded-xl p-8 shadow-md border border-gray-200 dark:border-gray-700 text-center relative overflow-hidden">
+          <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-8">Отношения бота</h2>
 
           <ClientOnly>
+             <!-- Legend -->
+             <div class="absolute top-4 right-4 z-20 flex flex-col gap-2 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm p-3 rounded-lg border border-gray-100 dark:border-gray-700 shadow-sm text-left">
+                  <div v-for="item in relationshipLegend" :key="item.label" class="flex items-center gap-2">
+                      <span class="w-3 h-3 rounded-full flex-shrink-0" :class="item.color"></span>
+                      <span class="text-xs font-medium text-gray-700 dark:text-gray-300">{{ item.label }}</span>
+                  </div>
+             </div>
+
           <div class="relative mx-auto mt-10" :style="{ width: containerSize + 'px', height: containerSize + 'px' }">
                <!-- SVG Lines Layer -->
                <svg class="absolute top-0 left-0 w-full h-full pointer-events-none z-0">
@@ -171,16 +197,6 @@ onMounted(() => {
                             stroke-width="2"
                             class="animate-pulse-slow"
                         />
-                        <!-- Label Text -->
-                        <text
-                            :x="(line.x1 + line.x2)/2"
-                            :y="(line.y1 + line.y2)/2"
-                            dy="-5"
-                            text-anchor="middle"
-                            class="text-[10px] font-bold uppercase tracking-wide fill-gray-500 dark:fill-gray-400 drop-shadow-md"
-                        >
-                            {{ line.label }}
-                        </text>
                     </g>
                </svg>
 
@@ -205,13 +221,14 @@ onMounted(() => {
                         :src="other.avatarUrl"
                         class="w-16 h-16 rounded-full border-2 border-gray-300 dark:border-gray-600 shadow-md bg-white dark:bg-gray-800 p-1 group-hover:scale-110 transition-transform duration-200"
                    >
-                   <span class="mt-2 text-xs font-semibold bg-white dark:bg-gray-800 px-2 py-0.5 rounded shadow text-gray-600 dark:text-gray-300 opacity-0 group-hover:opacity-100 transition-opacity border border-gray-100 dark:border-gray-700 whitespace-nowrap">
+                   <span class="mt-2 text-xs font-semibold bg-white dark:bg-gray-800 px-2 py-0.5 rounded shadow text-gray-600 dark:text-gray-300 transition-opacity border border-gray-100 dark:border-gray-700 whitespace-nowrap">
                        {{ other.name }}
                    </span>
                </NuxtLink>
           </div>
           </ClientOnly>
       </div>
+
 
     </div>
   </div>
