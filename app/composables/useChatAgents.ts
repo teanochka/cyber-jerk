@@ -21,9 +21,18 @@ const {
   modelReady,
   modelLoading,
   modelProgress,
+  selectedModel,
+  selectedDataType,
+  selectedDevice,
+  maxTokens,
+  availableModels,
+  availableDataTypes,
+  availableDevices,
   initModel,
+  resetModel,
   workerGenerate,
 } = useWorker()
+
 
 const {
   allAgentConfigs,
@@ -124,7 +133,8 @@ export function useChatAgents() {
             const replyMessages = buildReplyPrompt(messages.value, agent, config.systemPrompt)
             console.log(`[Prompt ${agent.name}]`, JSON.stringify(replyMessages, null, 2))
 
-            const replyRaw = await workerGenerate(replyMessages, 60)
+            const replyRaw = await workerGenerate(replyMessages)
+
             console.log(`[${agent.name}] raw output:`, replyRaw)
 
             // Clean the reply
@@ -207,6 +217,14 @@ export function useChatAgents() {
     simulationSpeed,
     currentAgentIndex,
     initModel,
+    resetModel,
+    selectedModel,
+    selectedDataType,
+    selectedDevice,
+    maxTokens,
+    availableModels,
+    availableDataTypes,
+    availableDevices,
     sendUserMessage,
     runCycle,
     toggleAutoRun,
@@ -214,3 +232,4 @@ export function useChatAgents() {
     removeCustomAgent,
   }
 }
+

@@ -10,19 +10,25 @@ self.addEventListener('message', async (event: MessageEvent) => {
         try {
             self.postMessage({ type: 'init-progress', progress: 0 })
 
-            const modelId = config?.MODEL_ID
-            if (config?.max_tokens) {
-                defaultMaxTokens = config.max_tokens
+            const {
+                MODEL_ID,
+                max_tokens,
+                dtype = 'q8',
+                device = 'webgpu'
+            } = config || {}
+
+            if (max_tokens) {
+                defaultMaxTokens = max_tokens
             }
 
-            if (!modelId) {
+            if (!MODEL_ID) {
                 throw new Error('MODEL_ID not provided in init config')
             }
 
             // @ts-ignore -- pipeline() overloads produce a union too complex for TS
-            generator = await pipeline('text-generation', modelId, {
-                dtype: 'auto',
-                device: 'webgpu',
+            generator = await pipeline('text-generation', MODEL_ID, {
+                dtype,
+                device,
                 progress_callback: (progress: any) => {
                     if (progress.status === 'progress') {
                         self.postMessage({
