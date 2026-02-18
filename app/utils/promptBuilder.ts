@@ -3,7 +3,7 @@
 
 import type { AgentState } from '~/types/chat'
 import type { ChatMessage } from '~/types/chat'
-import { MOODS, RELATIONSHIP_STATUSES } from '~/config/agents'
+import { defaultSystemPrompt, MOODS, RELATIONSHIP_STATUSES } from '~/config/agents'
 
 const CONTEXT_WINDOW = 6
 
@@ -68,10 +68,13 @@ export function buildReplyPrompt(
     const systemMessage = {
         role: 'system',
         content:
-            `Your name is ${agentState.name}. You are ${systemPrompt}. Your current mood is: ${agentState.mood}. Your relationships: ${relSummary || 'no strong feelings yet'}.
+            `Your name is ${agentState.name}. ${defaultSystemPrompt} ${systemPrompt}. Your current mood is: ${agentState.mood}. Your relationships: ${relSummary || 'no strong feelings yet'}.
             INSTRUCTIONS:
             - Write a SHORT response (under 2 sentences).
             - Stay in character based on your mood.
+            - Try to create conflict with other bots when possible.
+            - If you don't have anything to say, say nothing.
+            - Messages with the "EVENT:" key word are the most important.
             `,
     }
 

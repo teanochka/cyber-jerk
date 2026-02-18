@@ -7,6 +7,10 @@ export interface ChatMessage {
     text: string
     timestamp: number
     color: string        // tailwind bg class for the bubble
+    sentiment?: {        // Experimental sentiment analysis
+        label: string
+        score: number
+    }
 }
 
 // Relationship from one agent to another.

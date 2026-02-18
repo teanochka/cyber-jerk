@@ -1,6 +1,7 @@
 import type { Mood, RelationshipStatus } from '~/config/agents'
 import type { AgentState, ChatMessage, Relationship } from '~/types/chat'
 import { MOODS, RELATIONSHIP_STATUSES } from '~/config/agents'
+import { calculateAiRelationshipUpdates } from '~/utils/sentiment'
 
 const POSITIVE_WORDS = [
     'love', 'great', 'awesome', 'amazing', 'good', 'nice', 'thank', 'thanks',
@@ -76,12 +77,12 @@ export function determineMood(
     }
 
     // Build mood probability weights.
-    console.log(`[Heuristics] ${agentId} Mood Scores:`, {
-        positive: totalPositive.toFixed(2),
-        negative: totalNegative.toFixed(2),
-        chaotic: totalChaotic.toFixed(2),
-        calm: totalCalm.toFixed(2)
-    })
+    // console.log(`[Heuristics] ${agentId} Mood Scores:`, {
+    //     positive: totalPositive.toFixed(2),
+    //     negative: totalNegative.toFixed(2),
+    //     chaotic: totalChaotic.toFixed(2),
+    //     calm: totalCalm.toFixed(2)
+    // })
 
     const weights: Record<Mood, number> = {
         happy: 1 + totalPositive * 1.5 + totalCalm * 0.5,
@@ -114,13 +115,31 @@ export function determineMood(
     return currentMood
 }
 
+
+
 // Update relationships based on recent interactions.
 export function updateRelationships(
     agent: AgentState,
     recentMessages: ChatMessage[],
+    useAiSentiment: boolean = false
 ): Relationship[] {
     const updated = [...agent.relationships]
+
+    if (useAiSentiment) {
+        const aiUpdates = calculateAiRelationshipUpdates(agent, recentMessages)
+        // Apply updates
+        for (let i = 0; i < updated.length; i++) {
+            const rel = updated[i]!
+            if (aiUpdates[rel.targetName]) {
+                updated[i] = { ...rel, status: aiUpdates[rel.targetName]! }
+            }
+        }
+        return updated
+    }
+
+    // Original Heuristic Logic
     const lastMessages = recentMessages.slice(-6)
+    // ... rest of function ...
 
     for (let i = 0; i < updated.length; i++) {
         const rel = updated[i]
@@ -160,12 +179,12 @@ export function updateRelationships(
         const currentStatus = rel.status
         const net = positiveScore - negativeScore
 
-        console.log(`[Heuristics] ${agent.name} <-> ${rel.targetName} Scores:`, {
-            pos: positiveScore.toFixed(2),
-            neg: negativeScore.toFixed(2),
-            net: net.toFixed(2),
-            current: currentStatus
-        })
+        // console.log(`[Heuristics] ${agent.name} <-> ${rel.targetName} Scores:`, {
+        //     pos: positiveScore.toFixed(2),
+        //     neg: negativeScore.toFixed(2),
+        //     net: net.toFixed(2),
+        //     current: currentStatus
+        // })
 
         // Only shift sometimes (not every cycle) for more natural feel.
         if (Math.random() > 0.4) continue

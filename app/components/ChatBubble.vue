@@ -12,9 +12,10 @@ defineProps<{
   <div :class="{ 'flex justify-end': msg.sender === 'user' }">
     <div
       class="flex items-start gap-2.5 max-w-[75%] rounded-xl p-3 shadow-sm border border-gray-100 dark:border-gray-700/50 transition-all"
-      :class="msg.sender === 'user'
-        ? 'bg-primary/10 dark:bg-primary/20 ml-auto'
-        : 'bg-white dark:bg-gray-800'"
+      :class="[
+        msg.sender === 'user' ? 'bg-primary/10 dark:bg-primary/20 ml-auto' : 'bg-white dark:bg-gray-800',
+        msg.text.startsWith('EVENT:') ? '!bg-green-500/10 !border-green-500/40 !text-green-500 w-full max-w-full !ml-0' : ''
+      ]"
     >
       <NuxtLink
         v-if="msg.sender !== 'user'"
@@ -37,7 +38,17 @@ defineProps<{
           <span v-else class="text-sm font-semibold text-gray-900 dark:text-white">{{ msg.senderName }}</span>
           <span class="text-xs text-gray-400">{{ formatTime(msg.timestamp) }}</span>
         </div>
-        <p class="text-sm text-gray-700 dark:text-gray-300 leading-relaxed break-words">{{ msg.text }}</p>
+        <p class="text-sm text-gray-700 dark:text-gray-300 leading-relaxed break-words">
+          {{ msg.text }}
+          <span v-if="msg.sentiment" class="inline-flex items-center ml-2 px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide"
+            :class="msg.sentiment.label === 'POSITIVE'
+              ? 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300'
+              : 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300'"
+            :title="`Score: ${(msg.sentiment.score * 100).toFixed(1)}%`"
+          >
+            {{ msg.sentiment.label }}
+          </span>
+        </p>
       </div>
     </div>
   </div>

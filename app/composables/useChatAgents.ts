@@ -49,12 +49,29 @@ const {
 
 let initialized = false
 
-function addMessage(
+// ... imports ...
+import { useSentiment } from '~/composables/useSentiment'
+
+// ... existing code ...
+
+const {
+  classifyText,
+  isSentimentEnabled,
+  sentimentModelReady,
+  sentimentModelLoading,
+  sentimentModelProgress
+} = useSentiment()
+
+// ...
+
+async function addMessage(
   sender: string,
   senderName: string,
   text: string,
   color: string,
 ) {
+  const sentiment = isSentimentEnabled.value ? await classifyText(text) : undefined
+
   messages.value.push({
     id: Date.now() + Math.random(),
     sender,
@@ -62,6 +79,7 @@ function addMessage(
     text,
     timestamp: Date.now(),
     color,
+    sentiment: sentiment ?? undefined
   })
 }
 
@@ -74,12 +92,13 @@ function analyzeAndExecute(agent: AgentState, _lastMessageText: string) {
   // 1. Mood Analysis
   const newMood = determineMood(agent.id, agent.mood, messages.value)
   if (newMood !== agent.mood) {
-    console.log(`[Heuristics] ${agent.name} mood: ${agent.mood} -> ${newMood}`)
+    // console.log(`[Heuristics] ${agent.name} mood: ${agent.mood} -> ${newMood}`)
     agent.mood = newMood
   }
 
   // 2. Relationship Analysis
-  const updatedRels = updateRelationships(agent, messages.value)
+  // 2. Relationship Analysis
+  const updatedRels = updateRelationships(agent, messages.value, isSentimentEnabled.value)
   // Check for changes to log them? updateRelationships logs them internally now.
   agent.relationships = updatedRels
 }
@@ -131,11 +150,11 @@ export function useChatAgents() {
 
           try {
             const replyMessages = buildReplyPrompt(messages.value, agent, config.systemPrompt)
-            console.log(`[Prompt ${agent.name}]`, JSON.stringify(replyMessages, null, 2))
+            // console.log(`[Prompt ${agent.name}]`, JSON.stringify(replyMessages, null, 2))
 
             const replyRaw = await workerGenerate(replyMessages)
 
-            console.log(`[${agent.name}] raw output:`, replyRaw)
+            // console.log(`[${agent.name}] raw output:`, replyRaw)
 
             // Clean the reply
             const cleaned = cleanReply(replyRaw, agent.name)
@@ -230,6 +249,11 @@ export function useChatAgents() {
     toggleAutoRun,
     createCustomAgent,
     removeCustomAgent,
+    // Sentiment
+    isSentimentEnabled,
+    sentimentModelReady,
+    sentimentModelLoading,
+    sentimentModelProgress,
   }
 }
 

@@ -90,3 +90,62 @@ export function detectRelationshipUpdates(
 
     return updates
 }
+
+/**
+ * Calculates relationship updates based on AI Sentiment Analysis.
+ * If a message from a target bot mentions the current agent:
+ * - Positive Sentiment: 50% chance to improve relationship
+ * - Negative Sentiment: 50% chance to worsen relationship
+ */
+export function calculateAiRelationshipUpdates(
+    agent: { name: string; relationships: { targetId: string; targetName: string; status: RelationshipStatus }[] },
+    recentMessages: { sender: string; text: string; sentiment?: { label: string; score: number } }[]
+): Record<string, RelationshipStatus> {
+    const updates: Record<string, RelationshipStatus> = {}
+    // Look at recent messages (last 6 is standard context)
+    const lastMessages = recentMessages.slice(-6)
+
+    for (const rel of agent.relationships) {
+        // Filter messages sent BY the target
+        const targetMessages = lastMessages.filter(m => m.sender === rel.targetId)
+
+        for (const msg of targetMessages) {
+            // Check if they mentioned US
+            if (msg.text.toLowerCase().includes(agent.name.toLowerCase())) {
+                // Check sentiment
+                if (msg.sentiment) {
+                    let move = 0
+
+                    if (msg.sentiment.label === 'POSITIVE') {
+                        // 50% chance to improve
+                        if (Math.random() < 0.5) move = 1
+                    } else if (msg.sentiment.label === 'NEGATIVE') {
+                        // 50% chance to worsen
+                        if (Math.random() < 0.5) move = -1
+                    }
+
+                    if (move !== 0) {
+                        const currentIdx = RELATIONSHIP_SCALE.indexOf(rel.status)
+                        let newIdx = currentIdx + move
+
+                        // Clamp
+                        if (newIdx < 0) newIdx = 0
+                        if (newIdx >= RELATIONSHIP_SCALE.length) newIdx = RELATIONSHIP_SCALE.length - 1
+
+                        const newStatus = RELATIONSHIP_SCALE[newIdx]!
+
+                        // console.log(`[AI Sentiment] ${agent.name} -> ${rel.targetName}: ${msg.sentiment.label} msg detected. Status: ${rel.status} -> ${newStatus}`)
+
+                        // If multiple messages, latest wins or accumulative? 
+                        // Let's just set it. If multiple messages happen, the last one processed dominates or we could accumulate.
+                        // Given the probability, simpler is better.
+                        if (newStatus !== rel.status) {
+                            updates[rel.targetName] = newStatus
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return updates
+}

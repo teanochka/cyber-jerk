@@ -29,6 +29,10 @@ const {
   availableDevices,
   resetModel,
   initModel,
+  isSentimentEnabled,
+  sentimentModelReady,
+  sentimentModelLoading,
+  sentimentModelProgress,
 } = useChatAgents()
 
 
@@ -52,6 +56,11 @@ function handleDirectMessage(botName: string) {
 
 async function handleAct() {
   await toggleAutoRun()
+}
+
+function handleCreateEvent() {
+  newMessage.value = 'EVENT: ' + newMessage.value
+  document.getElementById('chat-input')?.focus()
 }
 
 // Auto-scroll to bottom when new messages appear.
@@ -274,6 +283,35 @@ function getAvatarUrl(senderId: string): string {
               </div>
             </div>
 
+            <!-- Experimental Features -->
+            <div class="pt-4 border-t border-gray-100 dark:border-gray-700">
+               <label class="flex items-center justify-between cursor-pointer">
+                 <div class="flex flex-col">
+                   <span class="text-sm font-medium text-gray-700 dark:text-gray-200">Продвинутый анализ настроения (экспериментальный)</span>
+                   <span class="text-xs text-gray-400">Использует модель для анализа настроения сообщений. Может снизить производительность.</span>
+                 </div>
+                 <div class="relative">
+                   <input type="checkbox" v-model="isSentimentEnabled" class="sr-only peer">
+                   <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary/20 dark:peer-focus:ring-primary/30 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary"></div>
+                 </div>
+               </label>
+
+                <!-- Sentiment Model Status -->
+                <div v-if="isSentimentEnabled" class="mt-2 p-2 bg-gray-50 dark:bg-gray-700/50 rounded text-xs flex items-center gap-2">
+                    <div v-if="sentimentModelLoading" class="flex items-center gap-2 text-amber-500">
+                        <svg class="animate-spin w-3 h-3" viewBox="0 0 24 24" fill="none">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Загрузка модели анализа настроения... {{ sentimentModelProgress }}%
+                    </div>
+                    <div v-else-if="sentimentModelReady" class="text-green-500 flex items-center gap-1">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                        Модель готова
+                    </div>
+                </div>
+            </div>
+
             <!-- Actions -->
             <div class="pt-2 border-t border-gray-100 dark:border-gray-700">
                <button
@@ -335,6 +373,15 @@ function getAvatarUrl(senderId: string): string {
             <svg class="w-5 h-5 rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
             </svg>
+          </button>
+          <button
+            id="event-btn"
+            type="button"
+            @click.prevent="handleCreateEvent"
+            class="p-2.5 text-white rounded-lg transition-colors shadow-md disabled:opacity-40 disabled:cursor-not-allowed bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600"
+            :disabled="!modelReady"
+          >
+            Создать событие
           </button>
         </form>
       </div>

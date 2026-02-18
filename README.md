@@ -46,6 +46,7 @@ npm run dev
 2.  **Шестеренка**: Открывает настройки модели и скорости симуляции.
     ![Настройки](screenshots/settings.png)
 
+*   У меня самый положительный опыт выходит на модели Llama-3.2-1B-Instruct на webgpu.
 3.  **Монитор (Dashboard)**: Открывает панель с текущими настроениями и отношениями агентов.
     
     ![Dashboard](screenshots/agent_dashboard.png)

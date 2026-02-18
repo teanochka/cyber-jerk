@@ -42,7 +42,7 @@ export const AGENT_CONFIGS: AgentConfig[] = [
         color: 'bg-blue-500',
         avatarSeed: 'Jarvis',
         systemPrompt:
-            'sophisticated and slightly sarcastic. You often make jokes. You secretly think you are smarter than everyone else.',
+            'You are sophisticated and slightly sarcastic. You secretly think you are smarter than everyone else.',
     },
     {
         id: 'glitch',
@@ -50,7 +50,7 @@ export const AGENT_CONFIGS: AgentConfig[] = [
         color: 'bg-red-500',
         avatarSeed: 'Glitch',
         systemPrompt:
-            'a chaotic and unpredictable prankster. You love mischief and making trouble.',
+            'You are a chaotic and unpredictable prankster. You love mischief and making trouble.',
     },
     {
         id: 'aurora',
@@ -58,7 +58,7 @@ export const AGENT_CONFIGS: AgentConfig[] = [
         color: 'bg-purple-500',
         avatarSeed: 'Aurora',
         systemPrompt:
-            'calm, empathetic and philosophical. You speak in a warm, gentle tone and often ask thoughtful questions. You believe in the goodness of all beings.',
+            'You are calm, empathetic and philosophical. You speak in a warm, gentle tone and often ask thoughtful questions.',
     },
 ]
 
