@@ -39,7 +39,7 @@ function handleCreate(data: {
   <aside class="w-80 border-l border-gray-200 dark:border-gray-700 bg-gray-50/80 dark:bg-gray-900/80 backdrop-blur-sm overflow-y-auto flex-shrink-0">
     <div class="p-4 space-y-4">
       <div class="flex items-center justify-between">
-        <h2 class="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Agent Debug</h2>
+        <h2 class="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Agent Dashboard</h2>
         <button
           id="create-bot-btn"
           @click="showCreateForm = !showCreateForm"
