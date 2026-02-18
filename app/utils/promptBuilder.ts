@@ -11,12 +11,24 @@ const CONTEXT_WINDOW = 6
 export function buildConversationTurns(
     messages: ChatMessage[],
     forAgentId: string,
+    forAgentName: string,
     n: number = CONTEXT_WINDOW,
 ) {
     const window = messages.slice(-n)
     const turns: { role: string; content: string }[] = []
 
     for (const m of window) {
+        // Filter out messages that start with @{BotName} but not for this bot
+        if (m.text.startsWith('@{')) {
+            const match = m.text.match(/^@\{([^}]+)\}/)
+            if (match) {
+                const targetName = match[1]
+                if (targetName !== forAgentName) {
+                    continue
+                }
+            }
+        }
+
         if (m.sender === forAgentId) {
             turns.push({ role: 'assistant', content: m.text })
         } else {
@@ -63,7 +75,7 @@ export function buildReplyPrompt(
             `,
     }
 
-    const turns = buildConversationTurns(messages, agentState.id)
+    const turns = buildConversationTurns(messages, agentState.id, agentState.name)
     return [systemMessage, ...turns]
 }
 

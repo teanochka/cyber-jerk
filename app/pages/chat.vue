@@ -44,6 +44,12 @@ function handleSend() {
   newMessage.value = ''
 }
 
+function handleDirectMessage(botName: string) {
+  newMessage.value = `@{${botName}} `
+  // Focus the input if possible
+  document.getElementById('chat-input')?.focus()
+}
+
 async function handleAct() {
   await toggleAutoRun()
 }
@@ -346,6 +352,7 @@ function getAvatarUrl(senderId: string): string {
         :current-agent-index="currentAgentIndex"
         @create-bot="createCustomAgent"
         @remove-bot="removeCustomAgent"
+        @send-message-to-bot="handleDirectMessage"
       />
     </transition>
   </div>
